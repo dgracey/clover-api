@@ -29,24 +29,21 @@ function start_transaction(){
     $apiKey = $wpdb->get_row("SELECT * FROM ".$wpdb->prefix . "clover"." where id=1");
 
     $card = array (
-      'name' => $_POST['cardholder_name'],
-      'number' => $_POST['card_number'],
-      'expiry_month' => $date[0],
-      'expiry_year' => $date[1],
-      'cvv' => $_POST['cvv'],
-      'address_1' => $_POST['address_1'],
-      'address_2'=> $_POST ['address_2'],
-      'city' => $_POST['city'],
-      'state' => $_POST['state'],
-      'zip' => $_POST['zip'],
-      'last4' => substr($_POST['card_number'], -4, 4),
-      'first6' => substr($_POST['card_number'], 0, 6)
+      'name' => sanitize_text_field($_POST['cardholder_name']),
+      'number' => sanitize_text_field($_POST['card_number']),
+      'expiry_month' => sanitize_text_field($date[0]),
+      'expiry_year' => sanitize_text_field($date[1]),
+      'cvv' => sanitize_text_field($_POST['cvv']),
+      'address_1' => sanitize_text_field($_POST['address_1']),
+      'address_2' => sanitize_text_field($_POST['address_2']),
+      'city' => sanitize_text_field($_POST['city']),
+      'state' => sanitize_text_field($_POST['state']),
+      'zip' => sanitize_text_field($_POST['zip']),
+      'last4' => substr(sanitize_text_field($_POST['card_number']), -4, 4),
+      'first6' => substr(sanitize_text_field($_POST['card_number']), 0, 6)
     );
 
   }
-
-  $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-
 
   create_token($card, $apiKey->apiKey, $amount, $invoice, $email);
 }
@@ -57,7 +54,7 @@ function create_token($card, $apiKey, $amount, $invoice, $email){
 
   //trigger exception in a "try" block
   try {
-    $card = json_encode([
+    $payload = json_encode([
       'card' => [
           'brand' => get_brand($card['number']),
           'encrypted_pan' => encrypt_pan($card['number']),
@@ -73,7 +70,12 @@ function create_token($card, $apiKey, $amount, $invoice, $email){
           'address_state' => $card["state"],
           'address_zip' => $card["zip"]
       ]
-      ]);
+      ], JSON_UNESCAPED_UNICODE);
+
+if (json_last_error() !== JSON_ERROR_NONE) {
+    error_log('[Clover] JSON encoding failed: ' . json_last_error_msg());
+    return;
+}
   }catch(Exception $e) {
     json_encode([
       'card' => [
@@ -102,7 +104,7 @@ function create_token($card, $apiKey, $amount, $invoice, $email){
     CURLOPT_TIMEOUT => 30,
     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
     CURLOPT_CUSTOMREQUEST => "POST",
-    CURLOPT_POSTFIELDS => $card,
+    CURLOPT_POSTFIELDS => $payload,
     CURLOPT_HTTPHEADER => [
       "accept: application/json",
       "apikey: ". "$apiKey",
