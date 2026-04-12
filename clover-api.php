@@ -120,9 +120,16 @@ if (json_last_error() !== JSON_ERROR_NONE) {
   if ($err) {
     echo "cURL Error #:" . $err;
   } else {
+    $card_token = json_decode($response, true);
 
-    $card_token= json_decode($response, true);
-    
+    error_log('[Clover] Token response: ' . $response);
+
+    if (empty($card_token["id"])) {
+        error_log('[Clover] Token creation failed. Response: ' . $response);
+        error_log('[Clover] API Key used: ' . substr($apiKey, 0, 6) . '...');
+        return;
+    }
+
     create_charge($card_token["id"], $amount, $invoice, $email);
   }
 }
