@@ -122,7 +122,7 @@ if (json_last_error() !== JSON_ERROR_NONE) {
   } else {
     $card_token = json_decode($response, true);
 
-    error_log('[Clover] Token response: ' . $response);
+    error_log('[Clover] Token response received. ID: ' . ($card_token["id"] ?? 'none') . ' Status: ' . ($card_token["object"] ?? 'unknown'));
 
     if (empty($card_token["id"])) {
         error_log('[Clover] Token creation failed. Response: ' . $response);
