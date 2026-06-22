@@ -74,6 +74,7 @@
 
         <div id="footer">
             <p>You have not been charged for this transaction.</p>
+            <p><a href="https://midwesttile.com/card-payment/">Try your payment again</a></p>
         </div>
         </div>
     </div>
